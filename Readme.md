@@ -118,7 +118,15 @@ Once **Scenario 2** initiates successfully, you can open a new terminal for the 
 
 #### 4.1 Chassis Control
 
-##### 4.1.1 Command Line: Publish Twist to `/cmd_vel`
+##### 4.1.1 Keyboard Control
+
+You can use the `teleop_twist_keyboard` node to control the chassis with your keyboard:
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+##### 4.1.2 Command Line: Publish Twist to `/cmd_vel`
 
 The chassis is controlled by **libgazebo_ros_planar_move**, and subscribes to `geometry_msgs/msg/Twist`.
 
@@ -390,7 +398,15 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 
 #### 4.1 底盘控制
 
-##### 4.1.1 命令行：发布 Twist 到 `/cmd_vel`
+##### 4.1.1 键盘控制
+
+您可以使用 `teleop_twist_keyboard` 节点通过键盘控制底盘：
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+##### 4.1.2 命令行：发布 Twist 到 `/cmd_vel`
 
 底盘由 **libgazebo_ros_planar_move** 控制，订阅 `geometry_msgs/msg/Twist`。
 
