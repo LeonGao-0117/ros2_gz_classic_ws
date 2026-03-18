@@ -22,8 +22,9 @@
           <specular>0.05 0.05 0.05 1</specular>
         </material>
       </visual>
-      <mu1>1.5</mu1>
-      <mu2>1.5</mu2>
+      <mu1>1.0</mu1>
+      <mu2>0.1</mu2>
+      <fdir1>1 0 0</fdir1>
       <kp>1000000.0</kp>
       <kd>10.0</kd>
       <minDepth>0.001</minDepth>
