@@ -53,7 +53,7 @@ Note that this workspace mainly contains four packages: `M3Pro_robot_description
 
 ```bash
 # 1. Enter the root directory of the workspace
-cd ~/ros2_ws  # Please replace with your actual workspace path
+cd ~/ros2_gz_classic_ws  # Please replace with your actual workspace path
 
 # 2. Compile the workspace
 colcon build
@@ -62,7 +62,7 @@ colcon build
 source install/setup.bash
 ```
 
-*(Tip: It is recommended to add `source ~/ros2_ws/install/setup.bash` to your `~/.bashrc` file, so that it loads automatically every time you open a terminal.)*
+*(Tip: It is recommended to add `source ~/ros2_gz_classic_ws/install/setup.bash` to your `~/.bashrc` file, so that it loads automatically every time you open a terminal.)*
 
 ---
 
@@ -85,7 +85,7 @@ ros2 launch M3Pro_robot_description display.launch.py
 
 #### Scenario 2: Start Complete Gazebo Simulation System
 
-This function will start a physical simulation environment powered by Gazebo, loading the control plugins (Mecanum wheel chassis and robotic arm), and triggering simulations for sensors like depth camera, LiDAR, etc.
+This function will start a physical simulation environment powered by Gazebo, loading the control plugins (Differential drive chassis and robotic arm), and triggering simulations for sensors like depth camera, LiDAR, etc.
 
 **Run Command (default world):**
 ```bash
@@ -106,7 +106,7 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 1. Start Gazebo Classic and load the `M3pro_world.world` simulation world.
 2. Spawn the M3Pro robot model into Gazebo.
 3. Use `gazebo_ros` plugins to automatically publish sensor data such as `/scan`, `/camera/image_raw`, clock `/clock`, etc. to ROS 2 topics.
-4. Delayed loading of the `controller_manager` as well as various associated controller plugins (joint state publisher, arm controller, mecanum chassis controller, etc.).
+4. Delayed loading of the `controller_manager` as well as various associated controller plugins (joint state publisher, arm controller, differential drive chassis controller, etc.).
 5. Automatically open and configure the RViz2 UI for real-time status monitoring.
 6. Start `cmd_vel_relay`, allowing users to send commands directly to the standard `/cmd_vel` topic to control the chassis.
 
@@ -128,7 +128,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 
 ##### 4.1.2 Command Line: Publish Twist to `/cmd_vel`
 
-The chassis is controlled by **libgazebo_ros_planar_move**, and subscribes to `geometry_msgs/msg/Twist`.
+The chassis is controlled by **diff_drive_controller** (ros2_control), and it subscribes to `/cmd_vel` (`geometry_msgs/msg/Twist`, which is relayed to `/diff_drive_controller/cmd_vel_unstamped`).
 
 **Move forward (linear velocity x=0.2 m/s):**
 ```bash
@@ -333,7 +333,7 @@ sudo apt install ros-humble-teleop-twist-keyboard
 
 ```bash
 # 1. 进入工作空间根目录
-cd ~/ros2_ws  # 请替换为您的真实工作空间路径
+cd ~/ros2_gz_classic_ws  # 请替换为您的真实工作空间路径
 
 # 2. 编译工作空间
 colcon build
@@ -342,7 +342,7 @@ colcon build
 source install/setup.bash
 ```
 
-*(提示：建议将 `source ~/ros2_ws/install/setup.bash` 加入到您的 `~/.bashrc` 文件中，这样每次打开终端都会自动加载。)*
+*(提示：建议将 `source ~/ros2_gz_classic_ws/install/setup.bash` 加入到您的 `~/.bashrc` 文件中，这样每次打开终端都会自动加载。)*
 
 ---
 
@@ -365,7 +365,7 @@ ros2 launch M3Pro_robot_description display.launch.py
 
 #### 场景二：启动完整的 Gazebo 仿真系统
 
-此功能将启动由 Gazebo 驱动的物理仿真环境，加载了控制插件（麦克纳姆轮底盘和机械臂），并且启动了深度相机、激光雷达等传感器仿真。
+此功能将启动由 Gazebo 驱动的物理仿真环境，加载了控制插件（差速驱动底盘和机械臂），并且启动了深度相机、激光雷达等传感器仿真。
 
 **运行命令（默认世界）：**
 ```bash
@@ -386,7 +386,7 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 1. 启动 Gazebo Classic 并加载 `M3pro_world.world` 仿真世界。
 2. 将 M3Pro 机器人模型生成 (Spawn) 到 Gazebo 中。
 3. 利用 `gazebo_ros` 插件自动将传感器数据（如 `/scan`, `/camera/image_raw`，时钟 `/clock` 等）发布到 ROS 2 话题。
-4. 延迟加载 `controller_manager` 及相关的各种控制器插件（关节状态发布器、机械臂控制器、麦轮底盘控制器等）。
+4. 延迟加载 `controller_manager` 及相关的各种控制器插件（关节状态发布器、机械臂控制器、差速底盘控制器等）。
 5. 自动启动并配置好 RViz2 界面用于实时状态监控。
 6. 启动 `cmd_vel_relay`，使得用户可以直接往标准 `/cmd_vel` 话题发送指令控制底盘。
 
@@ -408,7 +408,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 
 ##### 4.1.2 命令行：发布 Twist 到 `/cmd_vel`
 
-底盘由 **libgazebo_ros_planar_move** 控制，订阅 `geometry_msgs/msg/Twist`。
+底盘由 **diff_drive_controller** (ros2_control) 控制，底层订阅 `/diff_drive_controller/cmd_vel_unstamped`（系统自动将 `/cmd_vel` 中 `geometry_msgs/msg/Twist` 消息转发给此 topic）。
 
 **前进（线速度 x=0.2 m/s）：**
 ```bash
