@@ -33,14 +33,16 @@
   <xacro:macro name="ros2_control_plugin">
 
     <gazebo>
-      <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+      <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
         <parameters>$(find M3Pro_robot_bringup)/config/M3Pro_robot_controllers.yaml</parameters>
+        <robot_param>robot_description</robot_param>
+        <robot_param_node>robot_state_publisher</robot_param_node>
       </plugin>
     </gazebo>
 
     <ros2_control name="GazeboSystem" type="system">
       <hardware>
-        <plugin>ign_ros2_control/IgnitionSystem</plugin>
+        <plugin>gazebo_ros2_control/GazeboSystem</plugin>
       </hardware>
 
       <xacro:arm_joint_init name="arm1_Joint" init_val="0.0" />

@@ -1,4 +1,5 @@
 import os
+import re
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -15,7 +16,10 @@ def generate_launch_description():
 
     # 2. Use xacro to parse the file and get the robot_description string
     # Even pure URDF, processing via xacro ensures it's correctly passed as a string, avoiding YAML errors
-    robot_description_config = xacro.process_file(urdf_file).toxml()
+    robot_desc = xacro.process_file(urdf_file).toxml()
+    # Strip comments to prevent parameter parser errors in ROS2 when launching gazebo/ros2_control
+    clean_desc = re.sub(r'<!--(.*?)-->', '', robot_desc, flags=re.DOTALL)
+    robot_description_config = clean_desc.replace('\n', '')
 
     # 3. Node: robot_state_publisher
     node_robot_state_publisher = Node(

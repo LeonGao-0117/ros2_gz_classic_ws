@@ -15,6 +15,7 @@
   <exec_depend>rviz2</exec_depend>
 
   <depend>gazebo_ros_pkgs</depend>
+  <depend>gazebo_ros2_control</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>rclcpp</depend>

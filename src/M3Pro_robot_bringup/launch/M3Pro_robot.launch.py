@@ -1,15 +1,26 @@
 import os
+import re
+import xacro
 import time
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
-    IncludeLaunchDescription, TimerAction, SetEnvironmentVariable,
+    IncludeLaunchDescription, TimerAction,
     DeclareLaunchArgument, OpaqueFunction
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.parameter_descriptions import ParameterValue
+
+
+def _prepend_env(name, value):
+    """Prepend a value to an environment variable (or create it)."""
+    existing = os.environ.get(name, '')
+    if existing:
+        os.environ[name] = value + os.pathsep + existing
+    else:
+        os.environ[name] = value
 
 
 def launch_setup(context, *args, **kwargs):
@@ -22,34 +33,47 @@ def launch_setup(context, *args, **kwargs):
     rviz_config = os.path.join(pkg_description, 'rviz', 'M3Pro.rviz')
     install_share_path = os.path.dirname(pkg_description)
 
-    gz_resource_paths = [install_share_path]
+    gazebo_model_paths = [install_share_path]
 
     if world == 'hospital':
         try:
             pkg_hospital = get_package_share_directory('aws_robomaker_hospital_world')
-            world_path = os.path.join(pkg_hospital, 'worlds', 'hospital.sdf')
-            gz_resource_paths.append(os.path.join(pkg_hospital, 'models'))
-            gz_resource_paths.append(os.path.join(pkg_hospital, 'fuel_models'))
+            world_path = os.path.join(pkg_hospital, 'worlds', 'hospital.world')
+            gazebo_model_paths.append(os.path.join(pkg_hospital, 'models'))
+            gazebo_model_paths.append(os.path.join(pkg_hospital, 'fuel_models'))
         except Exception:
             print('[WARN] aws_robomaker_hospital_world not found, falling back to default world')
-            world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.sdf')
+            world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.world')
     elif world == 'small_house':
         try:
             pkg_small_house = get_package_share_directory('aws_robomaker_small_house_world')
-            world_path = os.path.join(pkg_small_house, 'worlds', 'small_house.sdf')
-            gz_resource_paths.append(os.path.join(pkg_small_house, 'models'))
-            gz_resource_paths.append(pkg_small_house)
+            world_path = os.path.join(pkg_small_house, 'worlds', 'small_house.world')
+            gazebo_model_paths.append(os.path.join(pkg_small_house, 'models'))
+            gazebo_model_paths.append(pkg_small_house)
         except Exception:
             print('[WARN] aws_robomaker_small_house_world not found, falling back to default world')
-            world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.sdf')
+            world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.world')
     else:
-        world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.sdf')
+        world_path = os.path.join(pkg_description, 'worlds', 'M3pro_world.world')
 
-    gz_resource_path_str = os.pathsep.join(gz_resource_paths)
+    gazebo_model_path_str = os.pathsep.join(gazebo_model_paths)
 
-    # 3. Parse Xacro
+    # Set GAZEBO env vars directly in os.environ so that gzserver.launch.py
+    # (which reads os.environ at import time) picks them up correctly.
+    # SetEnvironmentVariable is too late — gzserver.launch.py reads environ
+    # during generate_launch_description(), not at process spawn time.
+    _prepend_env('GAZEBO_MODEL_PATH', gazebo_model_path_str)
+    _prepend_env('GAZEBO_PLUGIN_PATH', '/opt/ros/humble/lib')
+
+    # 3. Parse Xacro and strip comments and newlines
+    doc = xacro.process_file(main_xacro_path)
+    robot_desc = doc.toxml()
+    # Strip comments to prevent parameter parser errors in gazebo_ros2_control
+    clean_desc = re.sub(r'<!--(.*?)-->', '', robot_desc, flags=re.DOTALL)
+    clean_desc = clean_desc.replace('\n', '')
+    
     robot_description_value = ParameterValue(
-        Command(['xacro ', main_xacro_path]),
+        clean_desc,
         value_type=str
     )
 
@@ -64,12 +88,12 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    # 5. Start Gazebo Sim
+    # 5. Start Gazebo Classic (gzserver + gzclient)
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
+            os.path.join(get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')
         ]),
-        launch_arguments={'gz_args': [f'-r {world_path}']}.items()
+        launch_arguments={'world': world_path}.items()
     )
 
     # 6. Spawn robot (per-world position — must avoid furniture collisions)
@@ -81,31 +105,17 @@ def launch_setup(context, *args, **kwargs):
         spawn_xyz = ['0.0', '0.0', '0.15']
 
     spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
+        package='gazebo_ros',
+        executable='spawn_entity.py',
         arguments=[
-            '-name', 'M3Pro',
+            '-entity', 'M3Pro',
             '-topic', 'robot_description',
             '-x', spawn_xyz[0], '-y', spawn_xyz[1], '-z', spawn_xyz[2]
         ],
         output='screen',
     )
 
-    # 7. ROS-GZ Bridge
-    bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=[
-            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
-            '/scan_back@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
-            '/camera/image@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
-            '/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-        ],
-        output='screen'
-    )
+    # 7. Gazebo Classic plugins publish directly to ROS 2 topics — no bridge needed
 
     # 8. Delay loading controllers
     def create_controller_spawner(name, delay):
@@ -160,11 +170,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
-        SetEnvironmentVariable('GZ_SIM_RESOURCE_PATH', gz_resource_path_str),
-        SetEnvironmentVariable('GZ_SIM_SYSTEM_PLUGIN_PATH', '/opt/ros/humble/lib'),
-
         node_robot_state_publisher,
-        bridge,
         gazebo,
         spawn_entity,
         load_joint_state,

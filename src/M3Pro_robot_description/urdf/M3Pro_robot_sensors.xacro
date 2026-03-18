@@ -3,13 +3,11 @@
 
   <xacro:macro name="lidar_ray" params="frame_name topic_name sensor_name">
     <gazebo reference="${frame_name}">
-      <sensor name="${sensor_name}" type="gpu_lidar">
+      <sensor name="${sensor_name}" type="ray">
         <pose>0 0 0 0 0 0</pose>
         <visualize>true</visualize>
         <update_rate>10</update_rate>
-        <topic>${topic_name}</topic>
-        <gz_frame_id>${frame_name}</gz_frame_id>
-        <lidar>
+        <ray>
           <scan>
             <horizontal>
               <samples>360</samples>
@@ -28,7 +26,14 @@
             <mean>0.0</mean>
             <stddev>0.01</stddev>
           </noise>
-        </lidar>
+        </ray>
+        <plugin name="${sensor_name}_plugin" filename="libgazebo_ros_ray_sensor.so">
+          <ros>
+            <remapping>~/out:=${topic_name}</remapping>
+          </ros>
+          <output_type>sensor_msgs/LaserScan</output_type>
+          <frame_name>${frame_name}</frame_name>
+        </plugin>
       </sensor>
     </gazebo>
   </xacro:macro>
@@ -38,12 +43,10 @@
     <xacro:lidar_ray frame_name="laser1_frame" topic_name="scan_back" sensor_name="lidar_rear"/>
 
     <gazebo reference="DCW2">
-      <sensor type="rgbd_camera" name="depth_camera">
+      <sensor type="depth" name="depth_camera">
         <always_on>true</always_on>
-        <update_rate>15.0</update_rate> 
+        <update_rate>15.0</update_rate>
         <visualize>true</visualize>
-        <topic>camera</topic> 
-        <gz_frame_id>DCW2</gz_frame_id>
         <camera name="camera">
           <horizontal_fov>1.04719755</horizontal_fov>
           <image>
@@ -56,6 +59,17 @@
             <far>10.0</far>
           </clip>
         </camera>
+        <plugin name="depth_camera_plugin" filename="libgazebo_ros_camera.so">
+          <ros>
+            <remapping>image_raw:=camera/image</remapping>
+            <remapping>camera_info:=camera/camera_info</remapping>
+            <remapping>image_depth:=camera/depth_image</remapping>
+            <remapping>points:=camera/points</remapping>
+          </ros>
+          <frame_name>DCW2</frame_name>
+          <min_depth>0.05</min_depth>
+          <max_depth>10.0</max_depth>
+        </plugin>
       </sensor>
     </gazebo>
   </xacro:macro>

@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>aws_robomaker_hospital_world</name>
   <version>1.0.0</version>
   <description>
-    AWS RoboMaker package for a house world with multiple rooms and furniture for Gazebo simulations.
+    AWS RoboMaker package for a hospital world with multiple rooms and furniture for Gazebo simulations.
   </description>
   <license>Apache 2.0</license>
   <author email="ros-contributions@amazon.com">AWS RoboMaker</author>
   <maintainer email="ros-contributions@amazon.com">AWS RoboMaker</maintainer>
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <exec_depend>gazebo_ros</exec_depend>
-  <exec_depend>gazebo</exec_depend>
   <exec_depend>gazebo_plugins</exec_depend>
   
   <export>
-    <gazebo_ros plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" gazebo_model_path="${prefix}/models:${prefix}/fuel_models"/>
+    <build_type>ament_cmake</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}/models:${prefix}/fuel_models"/>
   </export>
 </package>

@@ -27,11 +27,11 @@ sudo apt install ros-humble-ros2-control
 sudo apt install ros-humble-ros2-controllers
 
 
-# 3. Install Gazebo Fortress exclusive plugin for controllers (Core!)
-sudo apt install ros-humble-ign-ros2-control
+# 3. Install Gazebo Classic exclusive plugin for controllers (Core!)
+sudo apt install ros-humble-gazebo-ros2-control
 
-# Install Gazebo Fortress integration tools with ROS (including Bridge)
-sudo apt install ros-humble-ros-gz
+# Install Gazebo Classic integration tools with ROS (gazebo_ros_pkgs)
+sudo apt install ros-humble-gazebo-ros-pkgs
 
 # 4. Install Joint State Publisher GUI (used to control joints via sliders in RViz)
 sudo apt install ros-humble-joint-state-publisher-gui
@@ -103,9 +103,9 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 ```
 
 **The system will complete the startup automatically following these steps:**
-1. Start Gazebo Sim and load the `M3pro_world.sdf` simulation world.
+1. Start Gazebo Classic and load the `M3pro_world.world` simulation world.
 2. Spawn the M3Pro robot model into Gazebo.
-3. Start `ros_gz_bridge` to establish topic bridges between Gazebo and ROS 2 (e.g. sensor data `/scan`, `/camera/image_raw`, clock `/clock`, etc.).
+3. Use `gazebo_ros` plugins to automatically publish sensor data such as `/scan`, `/camera/image_raw`, clock `/clock`, etc. to ROS 2 topics.
 4. Delayed loading of the `controller_manager` as well as various associated controller plugins (joint state publisher, arm controller, mecanum chassis controller, etc.).
 5. Automatically open and configure the RViz2 UI for real-time status monitoring.
 6. Start `cmd_vel_relay`, allowing users to send commands directly to the standard `/cmd_vel` topic to control the chassis.
@@ -299,11 +299,11 @@ sudo apt install ros-humble-controller-manager
 sudo apt install ros-humble-ros2-control
 sudo apt install ros-humble-ros2-controllers
 
-# 3. 安装 Gazebo Fortress与控制器的专属插件 (核心！)
-sudo apt install ros-humble-ign-ros2-control
+# 3. 安装 Gazebo Classic 与控制器的专属插件 (核心！)
+sudo apt install ros-humble-gazebo-ros2-control
 
-# 安装 Gazebo Fortress与 ROS 的集成工具 (含 Bridge)
-sudo apt install ros-humble-ros-gz
+# 安装 Gazebo Classic 与 ROS 的集成工具 (gazebo_ros_pkgs)
+sudo apt install ros-humble-gazebo-ros-pkgs
 
 # 4. 安装 Joint State Publisher GUI (用于在 RViz 中通过滑块控制关节)
 sudo apt install ros-humble-joint-state-publisher-gui
@@ -375,9 +375,9 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 ```
 
 **系统将按照以下流程自动完成启动：**
-1. 启动 Gazebo Sim 并加载 `M3pro_world.sdf` 仿真世界。
+1. 启动 Gazebo Classic 并加载 `M3pro_world.world` 仿真世界。
 2. 将 M3Pro 机器人模型生成 (Spawn) 到 Gazebo 中。
-3. 启动 `ros_gz_bridge` 建立 Gazebo 与 ROS 2 之间的话题桥接（如传感器数据 `/scan`, `/camera/image_raw`，时钟 `/clock` 等）。
+3. 利用 `gazebo_ros` 插件自动将传感器数据（如 `/scan`, `/camera/image_raw`，时钟 `/clock` 等）发布到 ROS 2 话题。
 4. 延迟加载 `controller_manager` 及相关的各种控制器插件（关节状态发布器、机械臂控制器、麦轮底盘控制器等）。
 5. 自动启动并配置好 RViz2 界面用于实时状态监控。
 6. 启动 `cmd_vel_relay`，使得用户可以直接往标准 `/cmd_vel` 话题发送指令控制底盘。
