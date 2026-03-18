@@ -1,0 +1,87 @@
+# =============================================================================
+# NOTE: Currently using diff_drive_controller for debugging purposes.
+#       This is a TEMPORARY setup. The robot actually uses mecanum wheels.
+#       TODO: Switch back to mecanum_drive_controller/MecanumDriveController
+#             once the mecanum kinematics debugging is complete.
+# =============================================================================
+
+controller_manager:
+  ros__parameters:
+    update_rate: 200
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_controller:
+      type: position_controllers/GripperActionController
+
+    # TODO: Revert to mecanum_drive_controller/MecanumDriveController
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+arm_controller:
+  ros__parameters:
+    joints:
+      - arm1_Joint
+      - arm2_Joint
+      - arm3_Joint
+      - arm4_Joint
+      - arm5_Joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+
+gripper_controller:
+  ros__parameters:
+    joint: rlink1_Joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    goal_tolerance: 0.05
+    max_velocity: 1.0
+    stall_velocity_threshold: 0.001
+    stall_timeout: 3.0
+
+# TODO: Revert to mecanum_controller config when switching back to mecanum drive
+diff_drive_controller:
+  ros__parameters:
+    left_wheel_names:  ["lwheel1_Joint", "lwheel2_Joint"]
+    right_wheel_names: ["rwheel1_Joint", "rwheel2_Joint"]
+
+    wheel_separation: 0.1955
+    wheel_radius: 0.04
+
+    use_stamped_vel: false
+    cmd_vel_timeout: 0.5
+
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    publish_limited_velocity: true
+    enable_odom_tf: true
+
+    # velocity limits
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 2.0
+    linear.x.min_velocity: -2.0
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 3.0
+    angular.z.min_velocity: -3.0
+
+    # acceleration limits (key to preventing wheel slip!)
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 1.0
+    linear.x.min_acceleration: -1.5
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 1.5
+    angular.z.min_acceleration: -1.5
+
+    pose_covariance_diagonal: [0.001, 0.001, 1.0e-3, 1.0e-3, 1.0e-3, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 1.0e-3, 1.0e-3, 1.0e-3, 0.01]

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="lidar_ray" params="frame_name topic_name sensor_name">
+    <gazebo reference="${frame_name}">
+      <sensor name="${sensor_name}" type="gpu_lidar">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>true</visualize>
+        <update_rate>10</update_rate>
+        <topic>${topic_name}</topic>
+        <gz_frame_id>${frame_name}</gz_frame_id>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265</min_angle>
+              <max_angle>3.14159265</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.2</min>
+            <max>12.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="sensor_plugins">
+    <xacro:lidar_ray frame_name="laser0_frame" topic_name="scan" sensor_name="lidar_front"/>
+    <xacro:lidar_ray frame_name="laser1_frame" topic_name="scan_back" sensor_name="lidar_rear"/>
+
+    <gazebo reference="DCW2">
+      <sensor type="rgbd_camera" name="depth_camera">
+        <always_on>true</always_on>
+        <update_rate>15.0</update_rate> 
+        <visualize>true</visualize>
+        <topic>camera</topic> 
+        <gz_frame_id>DCW2</gz_frame_id>
+        <camera name="camera">
+          <horizontal_fov>1.04719755</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>10.0</far>
+          </clip>
+        </camera>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+</robot>

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="arm_joint_init" params="name init_val:=0.0">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">${init_val}</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="mimic_joint_init" params="name mimic_to multiplier:=1.0 offset:=0.0">
+    <joint name="${name}">
+      <param name="mimic">${mimic_to}</param>
+      <param name="multiplier">${multiplier}</param>
+      <param name="offset">${offset}</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="wheel_control_interface" params="name">
+    <joint name="${name}">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="ros2_control_plugin">
+
+    <gazebo>
+      <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+        <parameters>$(find M3Pro_robot_bringup)/config/M3Pro_robot_controllers.yaml</parameters>
+      </plugin>
+    </gazebo>
+
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware>
+        <plugin>ign_ros2_control/IgnitionSystem</plugin>
+      </hardware>
+
+      <xacro:arm_joint_init name="arm1_Joint" init_val="0.0" />
+      <xacro:arm_joint_init name="arm2_Joint" init_val="0.785" />
+      <xacro:arm_joint_init name="arm3_Joint" init_val="-1.57" />
+      <xacro:arm_joint_init name="arm4_Joint" init_val="-0.785" />
+      <xacro:arm_joint_init name="arm5_Joint" init_val="-0.785" />
+
+      <xacro:arm_joint_init name="rlink1_Joint" init_val="0.0" />
+
+      <xacro:mimic_joint_init name="rlink2_Joint" mimic_to="rlink1_Joint" multiplier="1.0" />
+      <xacro:mimic_joint_init name="llink1_Joint" mimic_to="rlink1_Joint" multiplier="1.0" />
+      <xacro:mimic_joint_init name="llink2_Joint" mimic_to="rlink1_Joint" multiplier="-1.0" />
+      <xacro:mimic_joint_init name="rlink3_Joint" mimic_to="rlink1_Joint" multiplier="-1.0" />
+      <xacro:mimic_joint_init name="llink3_Joint" mimic_to="rlink1_Joint" multiplier="1.0" />
+
+      <xacro:wheel_control_interface name="lwheel1_Joint" />
+      <xacro:wheel_control_interface name="lwheel2_Joint" />
+      <xacro:wheel_control_interface name="rwheel1_Joint" />
+      <xacro:wheel_control_interface name="rwheel2_Joint" />
+    </ros2_control>
+
+  </xacro:macro>
+</robot>
