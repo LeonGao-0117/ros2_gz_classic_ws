@@ -152,9 +152,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'input_topic': '/cmd_vel',
             'output_topic': '/diff_drive_controller/cmd_vel_unstamped',
-            'type': 'geometry_msgs/msg/Twist',
-            'qos_overrides./cmd_vel.subscription.reliability': 'best_effort',
-            'qos_overrides./cmd_vel.subscription.durability': 'volatile'
+            'type': 'geometry_msgs/msg/Twist'
         }]
     )
     # ===============================================================
