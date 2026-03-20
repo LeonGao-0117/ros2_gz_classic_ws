@@ -19,7 +19,7 @@ controller_manager:
     gripper_controller:
       type: position_controllers/GripperActionController
 
-    # TODO: Revert to mecanum_drive_controller/MecanumDriveController
+    # TODO: Revert to mecanum_drive_controller/MecanumDriveController -- TODO
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
