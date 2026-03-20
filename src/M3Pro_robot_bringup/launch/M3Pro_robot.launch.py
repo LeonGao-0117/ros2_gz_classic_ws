@@ -6,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     IncludeLaunchDescription, TimerAction,
-    DeclareLaunchArgument, OpaqueFunction
+    DeclareLaunchArgument, OpaqueFunction, ExecuteProcess
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
@@ -141,6 +141,19 @@ def launch_setup(context, *args, **kwargs):
     # TODO: Revert to 'mecanum_controller' when switching back to mecanum drive
     load_diff_drive_controller = create_controller_spawner('diff_drive_controller', base_delay + step * 3)
 
+    # 8.5 Send initial arm position via action after arm_controller is loaded
+    initial_pose_cmd = "ros2 action send_goal /arm_controller/follow_joint_trajectory control_msgs/action/FollowJointTrajectory \"{trajectory: {joint_names: [arm1_Joint, arm2_Joint, arm3_Joint, arm4_Joint, arm5_Joint], points: [{positions: [0.0, 0.785, -1.57, -0.785, -0.785], time_from_start: {sec: 2, nanosec: 0}}]}}\""
+    send_initial_pose = TimerAction(
+        period=base_delay + step + 4.0,  # Wait a few seconds after arm_controller is loaded
+        actions=[
+            ExecuteProcess(
+                cmd=[initial_pose_cmd],
+                shell=True,
+                output='screen'
+            )
+        ]
+    )
+
     # ========================== Core Modifications ==========================
     # 9. Topic relay: /cmd_vel -> diff_drive_controller's unstamped input
     #    TODO: Revert output_topic to '/mecanum_controller/reference_unstamped' for mecanum
@@ -173,6 +186,7 @@ def launch_setup(context, *args, **kwargs):
         spawn_entity,
         load_joint_state,
         load_arm_controller,
+        send_initial_pose,
         load_gripper_controller,
         load_diff_drive_controller,
         cmd_vel_relay,

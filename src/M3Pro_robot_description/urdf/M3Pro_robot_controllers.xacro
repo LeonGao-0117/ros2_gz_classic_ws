@@ -46,10 +46,10 @@
       </hardware>
 
       <xacro:arm_joint_init name="arm1_Joint" init_val="0.0" />
-      <xacro:arm_joint_init name="arm2_Joint" init_val="0.785" />
-      <xacro:arm_joint_init name="arm3_Joint" init_val="-1.57" />
-      <xacro:arm_joint_init name="arm4_Joint" init_val="-0.785" />
-      <xacro:arm_joint_init name="arm5_Joint" init_val="-0.785" />
+      <xacro:arm_joint_init name="arm2_Joint" init_val="0.0" />
+      <xacro:arm_joint_init name="arm3_Joint" init_val="0.0" />
+      <xacro:arm_joint_init name="arm4_Joint" init_val="0.0" />
+      <xacro:arm_joint_init name="arm5_Joint" init_val="0.0" />
 
       <xacro:arm_joint_init name="rlink1_Joint" init_val="0.0" />
 
