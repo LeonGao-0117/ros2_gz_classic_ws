@@ -41,6 +41,11 @@ sudo apt install ros-humble-topic-tools
 
 # 6. Install keyboard control node (used to drive chassis via keyboard inputs)
 sudo apt install ros-humble-teleop-twist-keyboard
+
+# 7. Install SLAM and Navigation 2 packages (used by M3Pro_robot_navigation)
+sudo apt install ros-humble-slam-toolbox
+sudo apt install ros-humble-navigation2
+sudo apt install ros-humble-nav2-bringup
 ```
 
 *Note: The `$ROS_DISTRO` in the above commands is explicitly replaced with `humble`, since M3Pro uses the ROS 2 Humble version of Ubuntu 22.04.*
@@ -49,7 +54,7 @@ sudo apt install ros-humble-teleop-twist-keyboard
 
 ### 2. Compile and Configure Workspace
 
-Note that this workspace mainly contains four packages: `M3Pro_robot_description`, `M3Pro_robot_bringup`, `aws_robomaker_hospital_world`, and `aws_robomaker_small_house_world`.
+Note that this workspace mainly contains five packages: `M3Pro_robot_description`, `M3Pro_robot_bringup`, `M3Pro_robot_navigation`, `aws_robomaker_hospital_world`, and `aws_robomaker_small_house_world`.
 
 ```bash
 # 1. Enter the root directory of the workspace
@@ -109,6 +114,71 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 4. Delayed loading of the `controller_manager` as well as various associated controller plugins (joint state publisher, arm controller, differential drive chassis controller, etc.).
 5. Automatically open and configure the RViz2 UI for real-time status monitoring.
 6. Start `cmd_vel_relay`, allowing users to send commands directly to the standard `/cmd_vel` topic to control the chassis.
+
+---
+
+#### Scenario 3: Mapping with SLAM in Hospital World
+
+This scenario is used to build a map in the hospital world and save it for later navigation.
+
+**Terminal 1: Build the workspace, then start the robot and hospital world**
+```bash
+colcon build
+source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=hospital
+```
+
+**Terminal 2: Run keyboard teleoperation**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+**Terminal 3: Start SLAM**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
+```
+
+**Save the map**
+
+The default save timeout may be too short. Use a larger timeout such as `20.0` seconds:
+
+```bash
+source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/M3Pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
+```
+
+**Expected output files:**
+```text
+src/M3Pro_robot_navigation/maps/my_map.yaml
+src/M3Pro_robot_navigation/maps/my_map.pgm
+```
+
+---
+
+#### Scenario 4: Navigation with Saved Map
+
+This scenario is used to start the navigation stack in the hospital world.
+
+**Terminal 1: Start the robot and hospital world**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=hospital
+```
+
+**Terminal 2: Start the navigation stack**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+```
+
+It is recommended to load `M3Pro_robot_description/rviz/M3Pro_nav2.rviz` in RViz2 for easier visualization during navigation.
+
+**Or specify the map and parameter file explicitly**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
+  map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
+  params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
+```
+
+**Default configuration file locations:**
+- `M3Pro_robot_navigation/maps/`
+- `M3Pro_robot_navigation/config/`
 
 ---
 
@@ -321,6 +391,11 @@ sudo apt install ros-humble-topic-tools
 
 # 6. 安装键盘控制节点 (用于键盘按键驱动底盘)
 sudo apt install ros-humble-teleop-twist-keyboard
+
+# 7. 安装建图与导航 2 相关功能包 (供 M3Pro_robot_navigation 使用)
+sudo apt install ros-humble-slam-toolbox
+sudo apt install ros-humble-navigation2
+sudo apt install ros-humble-nav2-bringup
 ```
 
 *注意：以上命令中的 `$ROS_DISTRO` 已明确替换为 `humble`，因为 M3Pro 使用的是 Ubuntu 22.04 的 ROS 2 Humble 版本。*
@@ -329,7 +404,7 @@ sudo apt install ros-humble-teleop-twist-keyboard
 
 ### 2. 编译并配置工作空间
 
-当前工作空间主要包含四个功能包：`M3Pro_robot_description`、`M3Pro_robot_bringup`、`aws_robomaker_hospital_world` 和 `aws_robomaker_small_house_world`。
+当前工作空间主要包含五个功能包：`M3Pro_robot_description`、`M3Pro_robot_bringup`、`M3Pro_robot_navigation`、`aws_robomaker_hospital_world` 和 `aws_robomaker_small_house_world`。
 
 ```bash
 # 1. 进入工作空间根目录
@@ -389,6 +464,71 @@ ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=small_house
 4. 延迟加载 `controller_manager` 及相关的各种控制器插件（关节状态发布器、机械臂控制器、差速底盘控制器等）。
 5. 自动启动并配置好 RViz2 界面用于实时状态监控。
 6. 启动 `cmd_vel_relay`，使得用户可以直接往标准 `/cmd_vel` 话题发送指令控制底盘。
+
+---
+
+#### 场景三：在医院世界中进行建图
+
+该场景用于在医院世界中运行 SLAM 建图，并将生成的地图保存下来供后续导航使用。
+
+**终端 1：编译工作空间，然后启动小车和医院世界模型**
+```bash
+colcon build
+source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=hospital
+```
+
+**终端 2：运行键盘控制**
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+**终端 3：启动建图**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
+```
+
+**保存地图**
+
+默认保存超时时间可能太短，建议显式指定更长的时间，例如 `20.0` 秒：
+
+```bash
+source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/M3Pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
+```
+
+**期望输出文件：**
+```text
+src/M3Pro_robot_navigation/maps/my_map.yaml
+src/M3Pro_robot_navigation/maps/my_map.pgm
+```
+
+---
+
+#### 场景四：使用已保存地图进行导航
+
+该场景用于在医院世界中启动导航模块。
+
+**终端 1：启动小车和医院世界模型**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=hospital
+```
+
+**终端 2：启动导航模块**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+```
+
+推荐在 RViz2 中加载 `M3Pro_robot_description/rviz/M3Pro_nav2.rviz`，方便查看导航过程。
+
+**或者显式指定地图和参数文件**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
+  map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
+  params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
+```
+
+**默认配置文件路径：**
+- `M3Pro_robot_navigation/maps/`
+- `M3Pro_robot_navigation/config/`
 
 ---
 

@@ -1,0 +1,31 @@
+## SHARED CONFIG
+## Used by both:
+## 1) slam.launch.py  (mapping mode)
+## 2) navigation.launch.py (localization/navigation mode)
+## Keep this file stable to guarantee /scan_merged consistency across modes.
+/**:
+  ros__parameters:
+    use_sim_time: true
+
+    front_topic: /scan
+    rear_topic: /scan_back
+    merged_topic: /scan_merged
+
+    output_frame: base_footprint
+
+    angle_min: -3.1415926535
+    angle_max: 3.1415926535
+    angle_increment: 0.00872664626
+    range_min: 0.2
+    range_max: 12.0
+
+    sync_queue_size: 10
+    sync_slop: 0.05
+
+    front_offset_x: -0.11617
+    front_offset_y: 0.09156
+    front_yaw: 0.0
+
+    rear_offset_x: 0.10766
+    rear_offset_y: -0.09078
+    rear_yaw: 0.0
