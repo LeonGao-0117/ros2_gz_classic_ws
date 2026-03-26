@@ -137,6 +137,8 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
 ```
 
+It is recommended to load `M3Pro_robot_description/rviz/M3Pro_build_map.rviz` in RViz2 for easier visualization during building map.
+
 **Save the map**
 
 The default save timeout may be too short. Use a larger timeout such as `20.0` seconds:
@@ -486,6 +488,8 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```bash
 source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
 ```
+
+推荐在 RViz2 中加载 `M3Pro_robot_description/rviz/M3Pro_build_map.rviz`，方便查看建图过程。
 
 **保存地图**
 

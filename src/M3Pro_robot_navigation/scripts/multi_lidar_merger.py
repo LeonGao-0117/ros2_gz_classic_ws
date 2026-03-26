@@ -101,7 +101,9 @@ class MultiLidarMerger(Node):
 
     def merge_callback(self, front_msg: LaserScan, rear_msg: LaserScan):
         merged = LaserScan()
-        merged.header.stamp = front_msg.header.stamp
+        # Use current ROS clock (sim time) for merged scan stamp to avoid stale
+        # synchronized pairs being rejected by TF message filters.
+        merged.header.stamp = self.get_clock().now().to_msg()
         merged.header.frame_id = self.output_frame
 
         merged.angle_min = self.angle_min

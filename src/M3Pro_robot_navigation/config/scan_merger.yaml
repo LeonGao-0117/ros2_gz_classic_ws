@@ -19,8 +19,8 @@
     range_min: 0.2
     range_max: 12.0
 
-    sync_queue_size: 10
-    sync_slop: 0.05
+    sync_queue_size: 3
+    sync_slop: 0.03
 
     front_offset_x: -0.11617
     front_offset_y: 0.09156
