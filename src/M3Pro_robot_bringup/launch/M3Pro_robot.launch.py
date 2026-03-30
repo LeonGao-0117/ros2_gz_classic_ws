@@ -6,8 +6,10 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     IncludeLaunchDescription, TimerAction,
-    DeclareLaunchArgument, OpaqueFunction, ExecuteProcess
+    DeclareLaunchArgument, OpaqueFunction, ExecuteProcess,
+    LogInfo, RegisterEventHandler
 )
+from launch.event_handlers import OnProcessStart, OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration
@@ -77,6 +79,17 @@ def launch_setup(context, *args, **kwargs):
         value_type=str
     )
 
+    # ── Debug: record launch wall-clock origin for elapsed-time logging ──
+    _t0 = time.time()
+
+    def _log(msg):
+        """Return an ExecuteProcess that prints *msg* with elapsed seconds."""
+        return ExecuteProcess(
+            cmd=['python3', '-c',
+                 f'import time; print("[BRINGUP +{{:.1f}}s] {msg}".format(time.time() - {_t0}))'],
+            output='screen',
+        )
+
     # 4. Robot State Publisher
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -97,6 +110,8 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # 6. Spawn robot (per-world position — must avoid furniture collisions)
+    is_heavy_world = world in ('hospital', 'small_house')
+
     if world == 'small_house':
         spawn_xyz = ['2.0', '1.0', '0.15']
     elif world == 'hospital':
@@ -104,7 +119,9 @@ def launch_setup(context, *args, **kwargs):
     else:
         spawn_xyz = ['0.0', '0.0', '0.15']
 
-    spawn_entity = Node(
+    spawn_delay = 10.0 if is_heavy_world else 3.0
+
+    spawn_entity_node = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
         arguments=[
@@ -115,6 +132,27 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
+    spawn_entity = TimerAction(
+        period=spawn_delay,
+        actions=[
+            _log(f'spawn_delay={spawn_delay:.0f}s fired -- spawning M3Pro into Gazebo ...'),
+            spawn_entity_node,
+        ]
+    )
+
+    spawn_entity_started = RegisterEventHandler(
+        OnProcessStart(
+            target_action=spawn_entity_node,
+            on_start=[_log('spawn_entity.py process STARTED')],
+        )
+    )
+    spawn_entity_exited = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_entity_node,
+            on_exit=[_log('spawn_entity.py process EXITED (robot should be in Gazebo)')],
+        )
+    )
+
     # 7. Gazebo Classic plugins publish directly to ROS 2 topics — no bridge needed
 
     # 8. Delay loading controllers
@@ -122,6 +160,7 @@ def launch_setup(context, *args, **kwargs):
         return TimerAction(
             period=delay,
             actions=[
+                _log(f'timer={delay:.0f}s fired -- loading controller: {name}'),
                 Node(
                     package='controller_manager',
                     executable='spawner',
@@ -131,7 +170,6 @@ def launch_setup(context, *args, **kwargs):
             ]
         )
 
-    is_heavy_world = world in ('hospital', 'small_house')
     base_delay = 20.0 if is_heavy_world else 4.0
     step = 5.0 if is_heavy_world else 2.0
 
@@ -142,10 +180,12 @@ def launch_setup(context, *args, **kwargs):
     load_diff_drive_controller = create_controller_spawner('diff_drive_controller', base_delay + step * 3)
 
     # 8.5 Send initial arm position via action after arm_controller is loaded
+    initial_pose_delay = base_delay + step + 4.0
     initial_pose_cmd = "ros2 action send_goal /arm_controller/follow_joint_trajectory control_msgs/action/FollowJointTrajectory \"{trajectory: {joint_names: [arm1_Joint, arm2_Joint, arm3_Joint, arm4_Joint, arm5_Joint], points: [{positions: [0.0, 0.785, -1.57, -0.785, -0.785], time_from_start: {sec: 2, nanosec: 0}}]}}\""
     send_initial_pose = TimerAction(
-        period=base_delay + step + 4.0,  # Wait a few seconds after arm_controller is loaded
+        period=initial_pose_delay,
         actions=[
+            _log(f'timer={initial_pose_delay:.0f}s fired -- sending initial arm pose'),
             ExecuteProcess(
                 cmd=[initial_pose_cmd],
                 shell=True,
@@ -180,10 +220,20 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{'use_sim_time': True}],
     )
 
+    # ── Debug: print planned timeline ──
+    timeline_summary = LogInfo(msg=
+        f'[BRINGUP] world={world}, heavy={is_heavy_world} | '
+        f'timeline: spawn@{spawn_delay:.0f}s, controllers@{base_delay:.0f}s+, '
+        f'arm_pose@{initial_pose_delay:.0f}s'
+    )
+
     return [
+        timeline_summary,
         node_robot_state_publisher,
         gazebo,
         spawn_entity,
+        spawn_entity_started,
+        spawn_entity_exited,
         load_joint_state,
         load_arm_controller,
         send_initial_pose,
