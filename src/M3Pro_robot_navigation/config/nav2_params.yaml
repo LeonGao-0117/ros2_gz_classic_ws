@@ -67,58 +67,6 @@ controller_server:
       yaw_goal_tolerance: 0.60                  # 航向角目标容差(弧度)，值太小会导致角度误差无法结束导航。0.5约28度，0.6大约35度。 # old: 0.3
       stateful: true                            # 状态保持，一旦进入容差范围即视为目标达成
 
-    # FollowPath:
-    #   plugin: dwb_core::DWBLocalPlanner                # DWB 动态窗口局部规划器插件
-    #   debug_trajectory_details: false                  # 禁用轨迹细节调试输出，减少日志
-    #   min_vel_x: -0.15                                 # 最小前进线速度 # -0.15表示允许小车以最大 0.15m/s 的速度倒车寻找出路 # old: 0.0                                   
-    #   max_vel_x: 0.30                                  # 最大前进线速度，室内导航推荐0.2-0.3m/s   # old: 0.35
-    #   min_vel_y: 0.0                                   # 最小横向线速度（差动机器人为0）
-    #   max_vel_y: 0.0                                   # 最大横向线速度（差动机器人为0）
-    #   max_vel_theta: old 0.6                           # 最大角速度，室内推荐0.5-1.0rad/s，值越大旋转能力越强   # old: 0.9
-    #   min_speed_xy: 0.0                                # 最小平面合速度
-    #   max_speed_xy: 0.30                               # 最大平面合速度，应≥max_vel_x       # old: 0.35
-    #   min_speed_theta: 0.0                             # 最小角速度
-    #   acc_lim_x: 0.8                                   # 线加速度上限，影响启动响应
-    #   decel_lim_x: -1.0                                # 线减速度上限，影响制动能力
-    #   acc_lim_theta: 1.5                               # 角加速度上限，影响转向响应速度，值越大转向响应越快
-    #   decel_lim_theta: -1.0                            # 角减速度上限，影响停止转向速度  # old: -1.5）
-    #   vx_samples: 40                                   # 线速度采样数，值越高轨迹优化越好但计算成本越高   # old: 20
-    #   vtheta_samples: 40                               # 角速度采样数，与vx_samples共同决定候选轨迹总数   # old: 20
-    #   sim_time: 2.5                                    # 轨迹仿真时间，规划器评估未来n秒内的轨迹  # old: 1.5
-    #   linear_granularity: 0.05                         # 线速度采样间隔
-    #   angular_granularity: 0.025                       # 角速度采样间隔
-    #   transform_tolerance: 0.2                         # TF变换容差时间(秒)，处理坐标系延迟
-    #   # xy_goal_tolerance: 0.25 # Duplicated with goal_checker
-    #   trans_stopped_velocity: 0.05                     # 平移停止判定阈值，速度低于此值视为停止
-    #   short_circuit_trajectory_evaluation: true        # 启用短路轨迹评估，发现碰撞立即停止评估提高效率
-    #   # stateful: true  # Duplicated with goal_checker
-    #   critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-    #                                                   # 启用的代价函数列表，按顺序评估轨迹
-
-    #   # 代价函数权重参数
-    #   Oscillation.class: Oscillation                  # Oscillation critic 类型
-    #   Oscillation.scale: 1.0                          # 振荡惩罚权重，抑制来回小幅运动
-    #   Oscillation.oscillation_reset_dist: 0.10        # 前进超过该距离后清除振荡状态(米)   # old: 0.05
-    #   Oscillation.oscillation_reset_angle: 0.20       # 旋转超过该角度后清除振荡状态(弧度)
-    #   Oscillation.oscillation_reset_time: -1.0        # 振荡状态自动重置时间(秒)，-1禁用时间重置
-    #   Oscillation.x_only_threshold: 0.05              # 低于该线速度时按原地旋转处理
-    #   BaseObstacle.scale: 0.02                        # 基础障碍物代价权重，惩罚靠近障碍物的轨迹   # old: 0.06
-    #   PathAlign.scale: 1.5                            # 路径对齐权重，惩罚偏离全局路径的轨迹       # old: 14.0 -> 5.0 -> 3.0
-    #                                                   # 值越高，越不允许小车朝向与路径切线偏离
-    #   PathAlign.forward_point_distance: 0.1           # 前视点距离，控制路径对齐的前向预测距离
-    #   PathDist.scale: 10.0                            # 路径距离权重，惩罚远离全局路径的轨迹  # old: 14.0 -> 12.0
-    #                                                   # 值越高，越不允许小车远离全局路径
-    #   GoalAlign.scale: 2.0                            # 目标对齐权重，惩罚不朝向目标点的轨迹  # old: 18.0 -> 4.0
-    #                                                   # 值越高，越不允许小车朝向与目标点偏离
-    #   GoalAlign.forward_point_distance: 0.1           # 目标对齐前视距离
-    #   GoalDist.scale: 1.0                             # 目标距离权重，惩罚远离目标点的轨迹（这个值大了会导致小车提前转向终点）  # old: 18.0 -> 3.0
-    #                                                   # 值越高，越不允许小车远离目标点
-    #   RotateToGoal.scale: 2.0                         # 旋转到目标权重，惩罚不匹配目标朝向的轨迹   # old: 12.0 -> 8.0 -> 6.0
-    #                                                   # 值越高，越不允许小车朝向与目标点偏离
-    #                                                   # 值降低，减少向目标过度旋转倾向 
-    #   RotateToGoal.slowing_factor: 3.0                # 减速因子，接近目标时降低旋转速度
-    #   RotateToGoal.lookahead_time: -1.0               # 前视时间，-1表示使用sim_time
-
     FollowPath:
       plugin: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController  # RPP 控制器插件，基于纯追踪算法并添加速度调节机制
       desired_linear_vel: 0.35                     # 目标巡航线速度
