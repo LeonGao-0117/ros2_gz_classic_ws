@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import json
 import math
 import os
 import select
@@ -10,6 +9,17 @@ from datetime import datetime
 import rclpy
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from rclpy.node import Node
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+UTIL_PATHS = [
+    os.path.join(SCRIPT_DIR, 'utils'),
+    os.path.join(SCRIPT_DIR, 'scripts', 'utils'),
+]
+for util_path in UTIL_PATHS:
+    if os.path.isdir(util_path) and util_path not in sys.path:
+        sys.path.append(util_path)
+
+from waypoint_io import load_waypoints as io_load_waypoints, write_waypoints as io_write_waypoints
 
 
 class WaypointCollector(Node):
@@ -80,39 +90,15 @@ class WaypointCollector(Node):
         self._latest_pose = None
 
     def waypoint_exists(self, name: str) -> bool:
-        if not os.path.exists(self.output_file):
-            return False
-
-        try:
-            with open(self.output_file, 'r', encoding='utf-8') as f:
-                loaded = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return False
-
-        if not isinstance(loaded, dict):
-            return False
-
-        waypoints = loaded.get('waypoints')
+        loaded = self.load_all()
+        waypoints = loaded.get('waypoints', {})
         return isinstance(waypoints, dict) and name in waypoints
 
     def load_all(self):
-        if not os.path.exists(self.output_file):
-            return {'waypoints': {}}
-
-        try:
-            with open(self.output_file, 'r', encoding='utf-8') as f:
-                loaded = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return {'waypoints': {}}
-
-        if isinstance(loaded, dict) and isinstance(loaded.get('waypoints'), dict):
-            return loaded
-        return {'waypoints': {}}
+        return io_load_waypoints(self.output_file)
 
     def write_all(self, data: dict):
-        os.makedirs(os.path.dirname(self.output_file), exist_ok=True)
-        with open(self.output_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        io_write_waypoints(self.output_file, data)
 
     def save_waypoint(self, name: str, pose_data=None) -> bool:
         target_pose = dict(pose_data) if pose_data is not None else self.get_latest_pose()
@@ -120,22 +106,9 @@ class WaypointCollector(Node):
             self.get_logger().warning('No pose received yet, cannot save waypoint.')
             return False
 
-        os.makedirs(os.path.dirname(self.output_file), exist_ok=True)
-
-        data = {'waypoints': {}}
-        if os.path.exists(self.output_file):
-            try:
-                with open(self.output_file, 'r', encoding='utf-8') as f:
-                    loaded = json.load(f)
-                if isinstance(loaded, dict) and isinstance(loaded.get('waypoints'), dict):
-                    data = loaded
-            except json.JSONDecodeError:
-                self.get_logger().warning('Output file is invalid JSON, recreating it.')
-
+        data = self.load_all()
         data['waypoints'][name] = target_pose
-
-        with open(self.output_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        self.write_all(data)
 
         self.get_logger().info(
             f"Saved waypoint '{name}' -> x={target_pose['x']:.3f}, y={target_pose['y']:.3f}, yaw={target_pose['yaw_deg']:.1f} deg"

@@ -171,18 +171,71 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 
 It is recommended to load `M3Pro_robot_description/rviz/M3Pro_nav2.rviz` in RViz2 for easier visualization during navigation.
 
-**Or specify the map and parameter file explicitly**
+Alternatively, specify the map and parameter file explicitly:
 ```bash
 source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
   map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
   params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
 ```
 
-**Default configuration file locations:**
+Default configuration file locations:
 - `M3Pro_robot_navigation/maps/`
 - `M3Pro_robot_navigation/config/`
 
+
+**Rviz2: Trigger navigation to target**
+In Rviz2 GUI, use "2D Pose Goal" to select a target point with direction, it will trigger navigation.
+
+Or open a new Terminal to execute commands like this:
+```
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
+    "{pose: {header: {frame_id: map}, \
+    pose: {position: {x: 8.40, y: -10.98, z: 0.15}, \
+    orientation: {z: 0.0, w: 1.0}}}}" --feedback
+```
+
 ---
+
+#### Scenario 5: Navigate to a waypoint by name
+
+**Terminal 1: Start the robot and hospital world**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.py world:=hospital
+```
+
+**Terminal 2: Start the navigation stack**
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+```
+
+**Terminal 3: Trigger navigation to a named waypoint**
+
+List all saved waypoints:
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --list
+```
+
+Navigate to the waypoint "sickroom1":
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+```
+
+Add a waypoint (interactive):
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation collect_waypoints.py
+```
+- In RViz2, use the "2D Pose Estimate" tool to select the new waypoint.
+- In the terminal running `collect_waypoints.py`, enter a name for the waypoint and press Enter to save it.
+
+Remove a waypoint by name:
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation collect_waypoints.py --remove <name>
+```
+
 
 ### 4. Control and Test Simulation Environment
 
@@ -535,6 +588,35 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 - `M3Pro_robot_navigation/config/`
 
 ---
+
+#### 场景五：按名称导航到 waypoint
+
+列出所有已保存的 waypoints：
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --list
+```
+
+导航到 waypoint "sickroom1"：
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+```
+
+添加 waypoint（交互式）：
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation collect_waypoints.py
+```
+- 在 RViz2 中使用 “2D Pose Estimate” 工具选择新的 waypoint。
+- 在运行 `collect_waypoints.py` 的终端中输入 waypoint 的名称并按回车保存。
+
+按名称删除 waypoint：
+```bash
+source install/setup.bash
+ros2 run M3Pro_robot_navigation collect_waypoints.py --remove <name>
+```
+
 
 ### 4. 控制与测试仿真环境
 

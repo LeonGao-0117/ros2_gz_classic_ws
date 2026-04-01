@@ -16,11 +16,15 @@ def generate_launch_description():
     scan_merger_params = os.path.join(pkg_share, 'config', 'scan_merger.yaml')
     nav2_params = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
     default_map = os.path.join(pkg_share, 'maps', 'my_map.yaml')
+    default_waypoints = os.path.join(pkg_share, 'config', 'waypoints.json')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     map_yaml = LaunchConfiguration('map')
     params_file = LaunchConfiguration('params_file')
     use_scan_merger = LaunchConfiguration('use_scan_merger')
+    waypoints_file = LaunchConfiguration('waypoints_file')
+    marker_topic = LaunchConfiguration('marker_topic')
+    poll_interval = LaunchConfiguration('poll_interval')
 
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
@@ -44,6 +48,30 @@ def generate_launch_description():
         'use_scan_merger',
         default_value='true',
         description='Start shared multi_lidar_merger node to publish /scan_merged for AMCL.',
+    )
+
+    # Path to the JSON file containing named waypoints. The marker publisher
+    # watches this file and refreshes MarkerArray when it changes.
+    declare_waypoints_file = DeclareLaunchArgument(
+        'waypoints_file',
+        default_value=default_waypoints,
+        description='Absolute path to waypoint JSON file for marker publishing.',
+    )
+
+    # ROS topic where the MarkerArray will be published for RViz visualization.
+    declare_marker_topic = DeclareLaunchArgument(
+        'marker_topic',
+        default_value='/named_waypoints',
+        description='MarkerArray output topic for waypoint visualization.',
+    )
+
+    # How often (seconds) the waypoint file is polled for changes; lower values
+    # update markers faster but use more CPU.
+    # TODO: 10s is too heavy for real-time updates; consider using inotify or similar file system event monitoring instead of polling.
+    declare_poll_interval = DeclareLaunchArgument(
+        'poll_interval',
+        default_value='10.0',
+        description='Seconds between waypoint file change checks.',
     )
 
     merger_node = Node(
@@ -109,6 +137,24 @@ def generate_launch_description():
         parameters=[params_file, {'use_sim_time': use_sim_time}],
     )
 
+    # Publish waypoint markers together with navigation so RViz can visualize named
+    # waypoints without launching a separate file. This node watches the waypoint
+    # JSON and periodically refreshes MarkerArray output on the configured topic.
+    marker_publish_node = Node(
+        package='M3Pro_robot_navigation',
+        executable='waypoint_marker_publisher.py',
+        name='waypoint_marker_publisher',
+        output='screen',
+        parameters=[
+            {
+                'use_sim_time': use_sim_time,
+                'waypoints_file': waypoints_file,
+                'marker_topic': marker_topic,
+                'poll_interval': poll_interval,
+            }
+        ],
+    )
+
     lifecycle_manager_node = Node(
         package='nav2_lifecycle_manager',
         executable='lifecycle_manager',
@@ -135,6 +181,9 @@ def generate_launch_description():
         declare_map,
         declare_params_file,
         declare_use_scan_merger,
+        declare_waypoints_file,
+        declare_marker_topic,
+        declare_poll_interval,
         merger_node,
         map_server_node,
         amcl_node,
@@ -142,5 +191,6 @@ def generate_launch_description():
         controller_node,
         behavior_node,
         bt_navigator_node,
+        marker_publish_node,
         lifecycle_manager_node,
     ])

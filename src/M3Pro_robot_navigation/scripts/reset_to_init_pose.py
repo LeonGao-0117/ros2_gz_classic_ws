@@ -8,6 +8,7 @@ import time
 
 import rclpy
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from nav2_msgs.srv import ClearEntireCostmap
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
@@ -24,8 +25,15 @@ def quat_to_yaw(qx: float, qy: float, qz: float, qw: float) -> float:
     return math.atan2(siny_cosp, cosy_cosp)
 
 
-def run_cmd(cmd):
-    return subprocess.run(cmd, text=True, capture_output=True)
+def run_cmd(cmd, timeout_sec=None):
+    try:
+        return subprocess.run(cmd, text=True, capture_output=True, timeout=timeout_sec)
+    except subprocess.TimeoutExpired as e:
+        stdout = e.stdout if e.stdout is not None else ''
+        stderr = e.stderr if e.stderr is not None else ''
+        if timeout_sec is not None:
+            stderr = (stderr + f'\nCommand timeout after {timeout_sec:.1f}s').strip()
+        return subprocess.CompletedProcess(cmd, returncode=124, stdout=stdout, stderr=stderr)
 
 
 def set_gazebo_pose(model_name: str, world_x: float, world_y: float, world_z: float, world_yaw_deg: float):
@@ -88,6 +96,100 @@ def set_gazebo_pose(model_name: str, world_x: float, world_y: float, world_z: fl
 
     print('No /set_entity_state service and no gz executable found.')
     return False
+
+
+def _clear_one_costmap(
+    node: Node,
+    service_name: str,
+    wait_service_sec: float,
+    call_timeout_sec: float,
+    retries: int,
+    retry_interval_sec: float,
+) -> bool:
+    client = node.create_client(ClearEntireCostmap, service_name)
+    try:
+        for attempt in range(1, retries + 1):
+            if not client.wait_for_service(timeout_sec=wait_service_sec):
+                node.get_logger().warn(
+                    f'[{service_name}] not available (attempt {attempt}/{retries}), wait={wait_service_sec:.1f}s'
+                )
+            else:
+                req = ClearEntireCostmap.Request()
+                future = client.call_async(req)
+                rclpy.spin_until_future_complete(node, future, timeout_sec=call_timeout_sec)
+
+                if future.done() and future.result() is not None:
+                    node.get_logger().info(f'[{service_name}] clear succeeded (attempt {attempt}/{retries})')
+                    return True
+
+                exc = future.exception() if future.done() else None
+                if exc is None:
+                    node.get_logger().warn(
+                        f'[{service_name}] call timeout (attempt {attempt}/{retries}), timeout={call_timeout_sec:.1f}s'
+                    )
+                else:
+                    node.get_logger().warn(f'[{service_name}] call failed (attempt {attempt}/{retries}): {exc}')
+
+            if attempt < retries:
+                time.sleep(retry_interval_sec)
+
+        return False
+    finally:
+        node.destroy_client(client)
+
+
+def clear_costmaps(
+    node: Node,
+    wait_service_sec: float = 1.0,
+    call_timeout_sec: float = 2.0,
+    retries: int = 3,
+    retry_interval_sec: float = 0.5,
+):
+    """Clear Nav2 global/local costmaps using rclpy service clients with retry/wait."""
+    node.get_logger().info('Attempting to clear Nav2 costmaps...')
+
+    # Candidate names cover both common layouts:
+    # 1) /global_costmap/clear_entirely_global_costmap
+    # 2) /global_costmap/global_costmap/clear_entirely_global_costmap
+    global_candidates = [
+        '/global_costmap/clear_entirely_global_costmap',
+        '/global_costmap/global_costmap/clear_entirely_global_costmap',
+    ]
+    local_candidates = [
+        '/local_costmap/clear_entirely_local_costmap',
+        '/local_costmap/local_costmap/clear_entirely_local_costmap',
+    ]
+
+    all_services = {name for name, _types in node.get_service_names_and_types()}
+
+    def pick_service(candidates):
+        for s in candidates:
+            if s in all_services:
+                return s
+        return candidates[0]
+
+    services = [
+        pick_service(global_candidates),
+        pick_service(local_candidates),
+    ]
+
+    node.get_logger().info(f'Costmap clear services selected: {services}')
+
+    result = {}
+    for service_name in services:
+        ok = _clear_one_costmap(
+            node=node,
+            service_name=service_name,
+            wait_service_sec=wait_service_sec,
+            call_timeout_sec=call_timeout_sec,
+            retries=retries,
+            retry_interval_sec=retry_interval_sec,
+        )
+        result[service_name] = ok
+
+    success_count = sum(1 for v in result.values() if v)
+    node.get_logger().info(f'Costmap clear summary: {success_count}/{len(services)} services succeeded.')
+    return success_count > 0
 
 
 class InitialPosePublisher(Node):
@@ -164,6 +266,11 @@ def build_parser():
     parser.add_argument('--clock-timeout', type=float, default=10.0, help='Timeout waiting for /clock')
     parser.add_argument('--repeats', type=int, default=3, help='How many times to publish /initialpose')
     parser.add_argument('--amcl-wait', type=float, default=10.0, help='Seconds to wait for /amcl_pose after publishing')
+    parser.add_argument('--costmap-retries', type=int, default=3, help='Retry count for each costmap clear service call')
+    parser.add_argument('--costmap-wait-service', type=float, default=1.0, help='Wait seconds for service availability per attempt')
+    parser.add_argument('--costmap-call-timeout', type=float, default=2.0, help='Timeout seconds per service call attempt')
+    parser.add_argument('--costmap-retry-interval', type=float, default=0.5, help='Sleep seconds between retry attempts')
+    parser.add_argument('--cmd-timeout', type=float, default=5.0, help='Timeout seconds for external CLI commands (gz/ros2 topic echo)')
     return parser
 
 
@@ -192,6 +299,18 @@ def main(args=None):
     try:
         node.wait_for_clock(parsed.clock_timeout)
         node.publish_initialpose(parsed.map_x, parsed.map_y, parsed.map_yaw, parsed.repeats)
+        # attempt to clear Nav2 costmaps (global and local) so stale obstacles are removed
+        print('Clearing costmaps...')
+        try:
+            clear_costmaps(
+                node,
+                wait_service_sec=parsed.costmap_wait_service,
+                call_timeout_sec=parsed.costmap_call_timeout,
+                retries=max(1, parsed.costmap_retries),
+                retry_interval_sec=max(0.0, parsed.costmap_retry_interval),
+            )
+        except Exception as e:
+            print(f'Failed to clear costmaps: {e}')
         # attempt to read current AMCL (/amcl_pose) once
         try:
             # subscribe once to /amcl_pose to get robot pose in map
@@ -231,7 +350,7 @@ def main(args=None):
                 print('amcl_msg is None, try using `ros2 topic echo /amcl_pose --once` to retrieve a sample')
                 # fallback: try using `ros2 topic echo /amcl_pose --once` to retrieve a sample
                 try:
-                    echo_res = run_cmd(['ros2', 'topic', 'echo', '/amcl_pose', '--once'])
+                    echo_res = run_cmd(['ros2', 'topic', 'echo', '/amcl_pose', '--once'], timeout_sec=parsed.cmd_timeout)
                     if echo_res.returncode == 0 and echo_res.stdout:
                         out = echo_res.stdout
                         # crude parsing for position and orientation
@@ -293,7 +412,7 @@ def main(args=None):
 
         # read Gazebo model pose via gz model -p
         try:
-            gz_res = run_cmd(['gz', 'model', '-m', parsed.model_name, '-p'])
+            gz_res = run_cmd(['gz', 'model', '-m', parsed.model_name, '-p'], timeout_sec=parsed.cmd_timeout)
             if gz_res.returncode == 0 and gz_res.stdout:
                 raw = gz_res.stdout.strip()
                 print(f'Gazebo model pose (raw): {raw}')

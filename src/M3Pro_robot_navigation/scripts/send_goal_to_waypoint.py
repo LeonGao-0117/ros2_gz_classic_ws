@@ -16,6 +16,17 @@ from rclpy.action import ActionClient
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformException, TransformListener
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+UTIL_PATHS = [
+    os.path.join(SCRIPT_DIR, 'utils'),
+    os.path.join(SCRIPT_DIR, 'scripts', 'utils'),
+]
+for util_path in UTIL_PATHS:
+    if os.path.isdir(util_path) and util_path not in sys.path:
+        sys.path.append(util_path)
+
+from waypoint_io import load_waypoints as io_load_waypoints
+
 
 class WaypointGoalSender(Node):
     def __init__(self):
@@ -42,19 +53,8 @@ class WaypointGoalSender(Node):
 
     def load_waypoints(self) -> Dict[str, dict]:
         file_path = self._resolve_waypoint_file()
-        if not os.path.exists(file_path):
-            return {}
-
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return {}
-
-        if not isinstance(data, dict):
-            return {}
-
-        waypoints = data.get('waypoints')
+        data = io_load_waypoints(file_path)
+        waypoints = data.get('waypoints', {})
         if not isinstance(waypoints, dict):
             return {}
 
@@ -161,8 +161,8 @@ class WaypointGoalSender(Node):
             rclpy.spin_once(self, timeout_sec=0.2)
             # print periodic status every 1 second and check for user input
             now = time.time()
-            if now - last_print >= 15.0:
-                self.get_logger().info('still navigating... (Input "a" to abort navigation, Input "q" to quit)')
+            if now - last_print >= 20.0:
+                self.get_logger().info('Still navigating... (Input "a" to abort navigation, Input "q" to quit)')
                 last_print = now
             # non-blocking stdin check
             if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
