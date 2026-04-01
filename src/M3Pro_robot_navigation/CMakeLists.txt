@@ -15,6 +15,9 @@ install(
 install(
   PROGRAMS
     scripts/multi_lidar_merger.py
+    scripts/collect_waypoints.py
+    scripts/send_goal_to_waypoint.py
+    scripts/reset_to_init_pose.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

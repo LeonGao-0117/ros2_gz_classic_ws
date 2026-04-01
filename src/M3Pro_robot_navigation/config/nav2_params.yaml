@@ -54,6 +54,7 @@ controller_server:
     failure_tolerance: 1.2                      # 控制失败容忍度，值越大对失败越容忍 # old: 0.8
     progress_checker_plugins: ["progress_checker"]  # 进度检查器插件列表
     goal_checker_plugins: ["goal_checker"]      # 目标检查器
+    current_goal_checker: "goal_checker"        # 明确指定当前使用的 goal checker，消除警告
     controller_plugins: ["FollowPath"]          # 控制器插件列表
 
     progress_checker:                           # 进度检查器配置
@@ -64,7 +65,7 @@ controller_server:
     goal_checker:                               # 目标检查器配置
       plugin: nav2_controller::SimpleGoalChecker
       xy_goal_tolerance: 0.30                   # XY位置目标容差(米)，到达此半径内视为成功
-      yaw_goal_tolerance: 0.60                  # 航向角目标容差(弧度)，值太小会导致角度误差无法结束导航。0.5约28度，0.6大约35度。 # old: 0.3
+      yaw_goal_tolerance: 1.57 # 90度           # 航向角目标容差(弧度)，值太小会导致角度误差无法结束导航。0.5约28度，0.6大约35度。 # old: 0.3
       stateful: true                            # 状态保持，一旦进入容差范围即视为目标达成
 
     FollowPath:
@@ -89,7 +90,7 @@ controller_server:
       use_rotate_to_heading: false                 # 当机器人当前航向与目标路径方向的夹角超过该阈值时，系统会触发‌原地旋转‌，先对齐目标方向
                                                    # 这个值true可能导致V型路径问题
       allow_reversing: false                       # RPP 下先禁用倒车
-      max_angular_accel: 3.2                       # 最大角加速度
+      max_angular_accel: 2.0 # 3.2                 # 最大角加速度
 
 behavior_server:
   ros__parameters:

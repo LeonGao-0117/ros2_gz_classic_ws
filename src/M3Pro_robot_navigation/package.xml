@@ -30,6 +30,7 @@
   <exec_depend>dwb_core</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>action_msgs</exec_depend>
 
   <exec_depend>M3Pro_robot_bringup</exec_depend>
   <exec_depend>M3Pro_robot_description</exec_depend>
