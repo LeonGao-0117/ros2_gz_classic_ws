@@ -178,6 +178,15 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
   params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
 ```
 
+**Nav2 with SmacPlanner2D + MPPI (optional parameter file)**
+
+The package also provides `M3Pro_robot_navigation/config/nav2_smac2d_mppi.yaml`, which uses **SmacPlanner2D** (`nav2_smac_planner/SmacPlanner2D`) for global path planning and **MPPI** (`nav2_mppi_controller::MPPIController`) for local trajectory tracking. Use it by pointing `params_file` at that YAML (you can combine it with `map:=...` the same way as above).
+
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
+  params_file:=<nav2_params_file_path>
+```
+
 Default configuration file locations:
 - `M3Pro_robot_navigation/maps/`
 - `M3Pro_robot_navigation/config/`
@@ -581,6 +590,15 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
   map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
   params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
+```
+
+**Nav2：SmacPlanner2D + MPPI（可选参数文件）**
+
+工作空间中还提供 `M3Pro_robot_navigation/config/nav2_smac2d_mppi.yaml`：全局规划使用 **SmacPlanner2D**（`nav2_smac_planner/SmacPlanner2D`），局部控制使用 **MPPI**（`nav2_mppi_controller::MPPIController`）。通过 `params_file` 指定该 YAML 即可启用；需要时仍可照常加上 `map:=...` 等参数。
+
+```bash
+source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
+  params_file:=<nav2_params_file_path>
 ```
 
 **默认配置文件路径：**
