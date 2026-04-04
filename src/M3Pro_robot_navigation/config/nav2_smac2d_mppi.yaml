@@ -19,6 +19,8 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
+    recovery_alpha_slow: 0.001   
+    recovery_alpha_fast: 0.1
 
 bt_navigator:
   ros__parameters:
@@ -43,11 +45,11 @@ planner_server:
       max_on_approach_iterations: 1000
       max_planning_time: 2.0
       cost_travel_multiplier: 5.0
-      use_final_approach_orientation: true
+      use_final_approach_orientation: false
       smoother:
         max_iterations: 1000
-        w_smooth: 0.5
-        w_data: 0.13
+        w_smooth: 0.2
+        w_data: 0.4
         tolerance: 1e-10
 
 controller_server:
@@ -85,8 +87,8 @@ controller_server:
       vx_min: -0.35
       vy_max: 0.0
       vy_min: 0.0
-      wz_max: 1.0
-      wz_min: -1.0
+      wz_max: 1.5
+      wz_min: -1.5
       iteration_count: 1
       prune_distance: 1.7
       transform_tolerance: 0.1
@@ -121,7 +123,7 @@ controller_server:
       PathAlignCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 2.5
+        cost_weight: 4.5
       PathFollowCritic:
         enabled: true
         cost_power: 1
@@ -133,6 +135,7 @@ controller_server:
         cost_weight: 5.0
         offset_from_furthest: 4
         threshold_to_keep: 0.5
+        mode: 2
       PreferForwardCritic:
         enabled: true
         cost_power: 1
@@ -188,7 +191,7 @@ local_costmap:
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 6.0
-        inflation_radius: 0.25
+        inflation_radius: 0.28
       always_send_full_costmap: true
 
 global_costmap:
