@@ -15,6 +15,7 @@ def generate_launch_description():
     # Keep sensor fusion behavior consistent between mapping and localization.
     scan_merger_params = os.path.join(pkg_share, 'config', 'scan_merger.yaml')
     nav2_params = os.path.join(pkg_share, 'config', 'nav2_params.yaml')
+    ekf_params = os.path.join(pkg_share, 'config', 'ekf.yaml')
     default_map = os.path.join(pkg_share, 'maps', 'my_map.yaml')
     default_waypoints = os.path.join(pkg_share, 'config', 'waypoints.json')
 
@@ -81,6 +82,14 @@ def generate_launch_description():
         output='screen',
         parameters=[scan_merger_params, {'use_sim_time': use_sim_time}],
         condition=IfCondition(use_scan_merger),
+    )
+
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_params, {'use_sim_time': use_sim_time}],
     )
 
     map_server_node = Node(
@@ -184,6 +193,7 @@ def generate_launch_description():
         declare_waypoints_file,
         declare_marker_topic,
         declare_poll_interval,
+        ekf_node,
         merger_node,
         map_server_node,
         amcl_node,

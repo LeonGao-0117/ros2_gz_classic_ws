@@ -17,10 +17,10 @@ amcl:
       yaw: 0.0                                  # 初始航向角(弧度)
     min_particles: 300                          # 最小粒子数，定位精度与计算量的平衡
     max_particles: 2000                         # 最大粒子数，复杂环境可增加
-    alpha1: 0.2                                 # 平移噪声参数1，x方向平移噪声
-    alpha2: 0.2                                 # 平移噪声参数2，y方向平移噪声
-    alpha3: 0.2                                 # 平移噪声参数3，旋转噪声
-    alpha4: 0.2                                 # 平移噪声参数4，平移导致的旋转噪声
+    alpha1: 0.05                                # 平移噪声参数1，x方向平移噪声
+    alpha2: 0.05                                # 平移噪声参数2，y方向平移噪声
+    alpha3: 0.05                                # 平移噪声参数3，旋转噪声
+    alpha4: 0.05                                # 平移噪声参数4，平移导致的旋转噪声
     alpha5: 0.2                                 # 平移噪声参数5，旋转导致的平移噪声
 
 bt_navigator:
@@ -28,7 +28,7 @@ bt_navigator:
     use_sim_time: true                          # 使用仿真时间
     global_frame: map                           # 全局坐标系
     robot_base_frame: base_footprint            # 机器人基座坐标系
-    odom_topic: /diff_drive_controller/odom     # 里程计话题路径
+    odom_topic: /odometry/filtered              # 里程计话题路径
     default_bt_xml_filename: /opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml
                                                 # 行为树XML文件路径
 
@@ -46,7 +46,7 @@ planner_server:
 controller_server:
   ros__parameters:
     use_sim_time: true                          # 使用仿真时间
-    odom_topic: /diff_drive_controller/odom     # 控制器使用的里程计话题
+    odom_topic: /odometry/filtered              # 控制器使用的里程计话题
     controller_frequency: 20.0                  # 控制器运行频率(Hz). 10.0 for DWB, 20.0 for RPP
     min_x_velocity_threshold: 0.001             # X方向最小速度阈值，低于此值视为停止
     min_y_velocity_threshold: 0.0               # Y方向最小速度阈值(差动机器人通常为0)

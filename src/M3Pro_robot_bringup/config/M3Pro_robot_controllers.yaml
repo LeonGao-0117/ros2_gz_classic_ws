@@ -65,7 +65,7 @@ diff_drive_controller:
     odom_frame_id: odom
     base_frame_id: base_footprint
     publish_limited_velocity: true
-    enable_odom_tf: true
+    enable_odom_tf: false
 
     # velocity limits
     linear.x.has_velocity_limits: true
