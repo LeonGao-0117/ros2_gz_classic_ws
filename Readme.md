@@ -327,7 +327,7 @@ ros2 action send_goal /gripper_controller/gripper_cmd control_msgs/action/Grippe
     }
   }"
 ```
-*(You can adjust the `position` value to open or close the gripper, unit often ranges around 0.0 to -0.7854 depending on URDF limits).*
+*(You can adjust the `position` value to open or close the gripper. Range: 0.0 (fully closed) to -1.0 (fully open), unit: radians).*
 
 **View current joint status:**
 ```bash
@@ -708,7 +708,7 @@ ros2 action send_goal /gripper_controller/gripper_cmd control_msgs/action/Grippe
     }
   }"
 ```
-*(您可以调整 `position` 值来打开或关闭夹爪，单位通常在 0.0 到 -0.7854 之间，取决于 URDF 限制)。*
+*(您可以调整 `position` 值来打开或关闭夹爪。范围：0.0 (完全闭合) 到 -1.0 (完全张开)，单位：弧度)。*
 
 **查看当前关节状态：**
 ```bash
