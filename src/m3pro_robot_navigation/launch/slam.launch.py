@@ -6,13 +6,13 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg_share = get_package_share_directory('M3Pro_robot_navigation')
+    pkg_share = get_package_share_directory('m3pro_robot_navigation')
 
     scan_merger_params = os.path.join(pkg_share, 'config', 'scan_merger.yaml')
     mapper_params = os.path.join(pkg_share, 'config', 'mapper_params.yaml')
 
     merger_node = Node(
-        package='M3Pro_robot_navigation',
+        package='m3pro_robot_navigation',
         executable='multi_lidar_merger.py',
         name='multi_lidar_merger',
         output='screen',

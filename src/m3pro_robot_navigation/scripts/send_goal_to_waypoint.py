@@ -32,7 +32,7 @@ class WaypointGoalSender(Node):
     def __init__(self):
         super().__init__('waypoint_goal_sender')
 
-        self.declare_parameter('waypoint_file', 'src/M3Pro_robot_navigation/config/waypoints.json')
+        self.declare_parameter('waypoint_file', 'src/m3pro_robot_navigation/config/waypoints.json')
         self.declare_parameter('global_frame', 'map')
         self.declare_parameter('base_frame', 'base_footprint')
         self.declare_parameter('navigate_action', 'navigate_to_pose')

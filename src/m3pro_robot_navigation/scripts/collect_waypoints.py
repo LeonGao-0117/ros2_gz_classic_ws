@@ -29,7 +29,7 @@ class WaypointCollector(Node):
         self.declare_parameter('pose_topic', '/initialpose')
         self.declare_parameter(
             'output_file',
-            'src/M3Pro_robot_navigation/config/waypoints.json',
+            'src/m3pro_robot_navigation/config/waypoints.json',
         )
 
         self.pose_topic = self.get_parameter('pose_topic').value

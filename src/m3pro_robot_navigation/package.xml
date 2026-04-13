@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>M3Pro_robot_navigation</name>
+  <name>m3pro_robot_navigation</name>
   <version>0.0.0</version>
   <description>SLAM and navigation integration package for M3Pro robot.</description>
   <maintainer email="leongao0117@gmail.com">Liang Gao</maintainer>

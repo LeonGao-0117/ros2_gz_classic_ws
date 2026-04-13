@@ -30,7 +30,7 @@ class WaypointMarkerPublisher(Node):
     def __init__(self):
         super().__init__('waypoint_marker_publisher')
 
-        self.declare_parameter('waypoints_file', 'src/M3Pro_robot_navigation/config/waypoints.json')
+        self.declare_parameter('waypoints_file', 'src/m3pro_robot_navigation/config/waypoints.json')
         self.declare_parameter('marker_topic', '/named_waypoints')
         self.declare_parameter('poll_interval', 1.0)
         self.declare_parameter('text_offset_z', 0.3)

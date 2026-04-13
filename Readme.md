@@ -42,7 +42,7 @@ sudo apt install ros-humble-topic-tools
 # 6. Install keyboard control node (used to drive chassis via keyboard inputs)
 sudo apt install ros-humble-teleop-twist-keyboard
 
-# 7. Install SLAM and Navigation 2 packages (used by M3Pro_robot_navigation)
+# 7. Install SLAM and Navigation 2 packages (used by m3pro_robot_navigation)
 sudo apt install ros-humble-slam-toolbox
 sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
@@ -54,7 +54,7 @@ sudo apt install ros-humble-nav2-bringup
 
 ### 2. Compile and Configure Workspace
 
-Note that this workspace mainly contains five packages: `M3Pro_robot_description`, `M3Pro_robot_bringup`, `M3Pro_robot_navigation`, `aws_robomaker_hospital_world`, and `aws_robomaker_small_house_world`.
+Note that this workspace mainly contains five packages: `M3Pro_robot_description`, `M3Pro_robot_bringup`, `m3pro_robot_navigation`, `aws_robomaker_hospital_world`, and `aws_robomaker_small_house_world`.
 
 ```bash
 # 1. Enter the root directory of the workspace
@@ -134,7 +134,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 
 **Terminal 3: Start SLAM**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
+source install/setup.bash && ros2 launch m3pro_robot_navigation slam.launch.py
 ```
 
 It is recommended to load `M3Pro_robot_description/rviz/M3Pro_build_map.rviz` in RViz2 for easier visualization during building map.
@@ -144,13 +144,13 @@ It is recommended to load `M3Pro_robot_description/rviz/M3Pro_build_map.rviz` in
 The default save timeout may be too short. Use a larger timeout such as `20.0` seconds:
 
 ```bash
-source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/M3Pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
+source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/m3pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
 ```
 
 **Expected output files:**
 ```text
-src/M3Pro_robot_navigation/maps/my_map.yaml
-src/M3Pro_robot_navigation/maps/my_map.pgm
+src/m3pro_robot_navigation/maps/my_map.yaml
+src/m3pro_robot_navigation/maps/my_map.pgm
 ```
 
 ---
@@ -166,21 +166,21 @@ source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.
 
 **Terminal 2: Start the navigation stack**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launch.py
 ```
 
 It is recommended to load `M3Pro_robot_description/rviz/M3Pro_nav2.rviz` in RViz2 for easier visualization during navigation.
 
 Alternatively, specify the map and parameter file explicitly:
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
-  map:=./src/M3Pro_robot_navigation/maps/my_map.yaml \
-  params_file:=./src/M3Pro_robot_navigation/config/nav2_params.yaml
+source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launch.py \
+  map:=./src/m3pro_robot_navigation/maps/my_map.yaml \
+  params_file:=./src/m3pro_robot_navigation/config/nav2_params.yaml
 ```
 
 Default configuration file locations:
-- `M3Pro_robot_navigation/maps/`
-- `M3Pro_robot_navigation/config/`
+- `m3pro_robot_navigation/maps/`
+- `m3pro_robot_navigation/config/`
 
 
 **Rviz2: Trigger navigation to target**
@@ -205,7 +205,7 @@ source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.
 
 **Terminal 2: Start the navigation stack**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launch.py
 ```
 
 **Terminal 3: Trigger navigation to a named waypoint**
@@ -213,19 +213,19 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 List all saved waypoints:
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --list
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --list
 ```
 
 Navigate to the waypoint "sickroom1":
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
 ```
 
 Add a waypoint (interactive):
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation collect_waypoints.py
+ros2 run m3pro_robot_navigation collect_waypoints.py
 ```
 - In RViz2, use the "2D Pose Estimate" tool to select the new waypoint.
 - In the terminal running `collect_waypoints.py`, enter a name for the waypoint and press Enter to save it.
@@ -233,7 +233,7 @@ ros2 run M3Pro_robot_navigation collect_waypoints.py
 Remove a waypoint by name:
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation collect_waypoints.py --remove <name>
+ros2 run m3pro_robot_navigation collect_waypoints.py --remove <name>
 ```
 
 
@@ -447,7 +447,7 @@ sudo apt install ros-humble-topic-tools
 # 6. 安装键盘控制节点 (用于键盘按键驱动底盘)
 sudo apt install ros-humble-teleop-twist-keyboard
 
-# 7. 安装建图与导航 2 相关功能包 (供 M3Pro_robot_navigation 使用)
+# 7. 安装建图与导航 2 相关功能包 (供 m3pro_robot_navigation 使用)
 sudo apt install ros-humble-slam-toolbox
 sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
@@ -459,7 +459,7 @@ sudo apt install ros-humble-nav2-bringup
 
 ### 2. 编译并配置工作空间
 
-当前工作空间主要包含五个功能包：`M3Pro_robot_description`、`M3Pro_robot_bringup`、`M3Pro_robot_navigation`、`aws_robomaker_hospital_world` 和 `aws_robomaker_small_house_world`。
+当前工作空间主要包含五个功能包：`M3Pro_robot_description`、`M3Pro_robot_bringup`、`m3pro_robot_navigation`、`aws_robomaker_hospital_world` 和 `aws_robomaker_small_house_world`。
 
 ```bash
 # 1. 进入工作空间根目录
@@ -539,7 +539,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 
 **终端 3：启动建图**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
+source install/setup.bash && ros2 launch m3pro_robot_navigation slam.launch.py
 ```
 
 推荐在 RViz2 中加载 `M3Pro_robot_description/rviz/M3Pro_build_map.rviz`，方便查看建图过程。
@@ -549,13 +549,13 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation slam.launch.py
 默认保存超时时间可能太短，建议显式指定更长的时间，例如 `20.0` 秒：
 
 ```bash
-source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/M3Pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
+source install/setup.bash && ros2 run nav2_map_server map_saver_cli -f src/m3pro_robot_navigation/maps/my_map --ros-args -p save_map_timeout:=20.0
 ```
 
 **期望输出文件：**
 ```text
-src/M3Pro_robot_navigation/maps/my_map.yaml
-src/M3Pro_robot_navigation/maps/my_map.pgm
+src/m3pro_robot_navigation/maps/my_map.yaml
+src/m3pro_robot_navigation/maps/my_map.pgm
 ```
 
 ---
@@ -571,21 +571,21 @@ source install/setup.bash && ros2 launch M3Pro_robot_bringup M3Pro_robot.launch.
 
 **终端 2：启动导航模块**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py
+source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launch.py
 ```
 
 推荐在 RViz2 中加载 `M3Pro_robot_description/rviz/M3Pro_nav2.rviz`，方便查看导航过程。
 
 **或者显式指定地图和参数文件**
 ```bash
-source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
-  map:=./src/M3Pro_robot_navigation/maps/my_map.yaml \
-  params_file:=./src/M3Pro_robot_navigation/config/nav2_params.yaml
+source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launch.py \
+  map:=./src/m3pro_robot_navigation/maps/my_map.yaml \
+  params_file:=./src/m3pro_robot_navigation/config/nav2_params.yaml
 ```
 
 **默认配置文件路径：**
-- `M3Pro_robot_navigation/maps/`
-- `M3Pro_robot_navigation/config/`
+- `m3pro_robot_navigation/maps/`
+- `m3pro_robot_navigation/config/`
 
 ---
 
@@ -594,19 +594,19 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 列出所有已保存的 waypoints：
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --list
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --list
 ```
 
 导航到 waypoint "sickroom1"：
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
 ```
 
 添加 waypoint（交互式）：
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation collect_waypoints.py
+ros2 run m3pro_robot_navigation collect_waypoints.py
 ```
 - 在 RViz2 中使用 “2D Pose Estimate” 工具选择新的 waypoint。
 - 在运行 `collect_waypoints.py` 的终端中输入 waypoint 的名称并按回车保存。
@@ -614,7 +614,7 @@ ros2 run M3Pro_robot_navigation collect_waypoints.py
 按名称删除 waypoint：
 ```bash
 source install/setup.bash
-ros2 run M3Pro_robot_navigation collect_waypoints.py --remove <name>
+ros2 run m3pro_robot_navigation collect_waypoints.py --remove <name>
 ```
 
 
