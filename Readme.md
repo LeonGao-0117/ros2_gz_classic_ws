@@ -174,8 +174,8 @@ It is recommended to load `M3Pro_robot_description/rviz/M3Pro_nav2.rviz` in RViz
 Alternatively, specify the map and parameter file explicitly:
 ```bash
 source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
-  map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
-  params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
+  map:=./src/M3Pro_robot_navigation/maps/my_map.yaml \
+  params_file:=./src/M3Pro_robot_navigation/config/nav2_params.yaml
 ```
 
 Default configuration file locations:
@@ -579,8 +579,8 @@ source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launc
 **或者显式指定地图和参数文件**
 ```bash
 source install/setup.bash && ros2 launch M3Pro_robot_navigation navigation.launch.py \
-  map:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/maps/my_map.yaml \
-  params_file:=/home/qiaoyu/project_leon/ros2_gz_classic_ws/src/M3Pro_robot_navigation/config/nav2_params.yaml
+  map:=./src/M3Pro_robot_navigation/maps/my_map.yaml \
+  params_file:=./src/M3Pro_robot_navigation/config/nav2_params.yaml
 ```
 
 **默认配置文件路径：**
