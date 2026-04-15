@@ -43,6 +43,7 @@ sudo apt install ros-humble-topic-tools
 sudo apt install ros-humble-teleop-twist-keyboard
 
 # 7. Install SLAM and Navigation 2 packages (used by m3pro_robot_navigation)
+sudo apt install ros-humble-robot-localization
 sudo apt install ros-humble-slam-toolbox
 sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
@@ -184,9 +185,12 @@ Default configuration file locations:
 
 
 **Rviz2: Trigger navigation to target**
-In Rviz2 GUI, use "2D Pose Goal" to select a target point with direction, it will trigger navigation.
 
-Or open a new Terminal to execute commands like this:
+Method 1: In RViz2 GUI, use the "2D Pose Goal" tool to select a target point with a direction — this will trigger navigation.
+
+- Tip: Click the map to set the goal position, hold and drag the left mouse button to indicate the goal heading, then release; the robot will start navigating to the selected pose.
+
+Method 2: open a new Terminal to execute commands like this:
 ```
 ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
     "{pose: {header: {frame_id: map}, \
@@ -216,10 +220,10 @@ source install/setup.bash
 ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --list
 ```
 
-Navigate to the waypoint "sickroom1":
+Navigate to the waypoint "ward1":
 ```bash
 source install/setup.bash
-ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name ward1
 ```
 
 Add a waypoint (interactive):
@@ -447,7 +451,8 @@ sudo apt install ros-humble-topic-tools
 # 6. 安装键盘控制节点 (用于键盘按键驱动底盘)
 sudo apt install ros-humble-teleop-twist-keyboard
 
-# 7. 安装建图与导航 2 相关功能包 (供 m3pro_robot_navigation 使用)
+# 7. 安装建图与导航相关功能包 (供 m3pro_robot_navigation 使用)
+sudo apt install ros-humble-robot-localization
 sudo apt install ros-humble-slam-toolbox
 sudo apt install ros-humble-navigation2
 sudo apt install ros-humble-nav2-bringup
@@ -583,9 +588,23 @@ source install/setup.bash && ros2 launch m3pro_robot_navigation navigation.launc
   params_file:=./src/m3pro_robot_navigation/config/nav2_params.yaml
 ```
 
-**默认配置文件路径：**
+默认配置文件路径：
 - `m3pro_robot_navigation/maps/`
 - `m3pro_robot_navigation/config/`
+
+**启动导航**
+
+方法1：在 RViz2 界面中，使用“2D Pose Goal”工具选择带朝向的目标点——这将触发导航。
+
+- 提示：在地图上点击设置目标位置，按住鼠标左键并拖动以指示目标朝向，然后松开鼠标；机器人将开始导航到所选位姿。
+
+方法2：通过发布话题触发导航
+```
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
+    "{pose: {header: {frame_id: map}, \
+    pose: {position: {x: 8.40, y: -10.98, z: 0.15}, \
+    orientation: {z: 0.0, w: 1.0}}}}" --feedback
+```
 
 ---
 
@@ -597,10 +616,10 @@ source install/setup.bash
 ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --list
 ```
 
-导航到 waypoint "sickroom1"：
+导航到 waypoint "ward1"：
 ```bash
 source install/setup.bash
-ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name sickroom1
+ros2 run m3pro_robot_navigation send_goal_to_waypoint.py --name ward1
 ```
 
 添加 waypoint（交互式）：
